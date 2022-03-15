@@ -15,7 +15,7 @@ const EXAMPLE_OPTIONS = [
 ];
 
 function shiftChecked(a, b, preState = [], options = []) {
-  if (a === b) return;
+  if (a === b) return preState;
   if (a > b) {
     // swap a, b
     return shiftChecked(b, a, preState, options);
@@ -35,13 +35,9 @@ function useOnListenShiftKeyPress() {
 
   useEffect(() => {
     const keydownCallback = (e) => {
-      e.preventDefault();
-      if (!e.shiftKey) return;
-
-      setIsSheiftPressed(true);
+      setIsSheiftPressed(e.shiftKey);
     };
     const keyupCallback = (e) => {
-      e.preventDefault();
       setIsSheiftPressed(false);
     };
 
@@ -65,7 +61,7 @@ function useMultipleChecked(options = []) {
   const [preIndex, setPreIndex] = useState();
   const { isSheiftPressed } = useOnListenShiftKeyPress();
 
-  const onCheckedChange = (index) => {
+  const onCheckedChange = useMemo(() => (index) => {
     if (!isSheiftPressed) {
       setIsChecked((preIsChecked) => {
         const newIsChecked = [...preIsChecked];
@@ -79,18 +75,7 @@ function useMultipleChecked(options = []) {
     setIsChecked((preIsChecked) =>
       shiftChecked(preIndex, index, preIsChecked, options)
     );
-  };
-
-  const onCheckedAll = () => {
-    setIsChecked((preIsChecked) => {
-      return preIsChecked.map((pre, index) => {
-        // Skip disabled options
-        if (options[index].disabled) return pre;
-
-        return !isChecked.includes(true);
-      });
-    });
-  };
+  }, [isSheiftPressed, options, preIndex]);
 
   const isCheckedAll = useMemo(() => {
     return isChecked.reduce((pre, cur, index) => {
@@ -100,6 +85,18 @@ function useMultipleChecked(options = []) {
       return pre && cur;
     });
   }, [isChecked, options]);
+
+  const onCheckedAll = () => {
+    setIsChecked((preIsChecked) => {
+      return preIsChecked.map((pre, index) => {
+        // Skip disabled options
+        if (options[index].disabled) return pre;
+
+        return !isCheckedAll;
+      });
+    });
+  };
+
 
   return {
     isChecked,
