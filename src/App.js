@@ -1,4 +1,4 @@
-import Recat, { useState, useMemo } from "react";
+import Recat, { useState, useMemo, useEffect } from "react";
 import "./App.css";
 
 const EXAMPLE_OPTIONS = [
@@ -14,57 +14,116 @@ const EXAMPLE_OPTIONS = [
   { id: "checkbox-9", index: 9, text: "9-未派車", disabled: false },
 ];
 
+function shiftChecked(a, b, preState = [], options = []) {
+  if (a === b) return;
+  if (a > b) {
+    // swap a, b
+    return shiftChecked(b, a, preState, options);
+  }
+
+  // case a < b
+  return preState.map((item, index) => {
+    if (a <= index && index <= b && !options[index].disabled) {
+      return true;
+    }
+    return item;
+  });
+}
+
+function useOnListenShiftKeyPress() {
+  const [isSheiftPressed, setIsSheiftPressed] = useState(false);
+
+  useEffect(() => {
+    const keydownCallback = (e) => {
+      e.preventDefault();
+      if (!e.shiftKey) return;
+
+      setIsSheiftPressed(true);
+    };
+    const keyupCallback = (e) => {
+      e.preventDefault();
+      setIsSheiftPressed(false);
+    };
+
+    document.addEventListener("keydown", keydownCallback);
+    document.addEventListener("keyup", keyupCallback);
+    return () => {
+      document.removeEventListener("keydown", keydownCallback);
+      document.removeEventListener("keyup", keyupCallback);
+    };
+  }, []);
+
+  return {
+    isSheiftPressed,
+  };
+}
+
 function useMultipleChecked(options = []) {
   const [isChecked, setIsChecked] = useState(
     new Array(options.length).fill(undefined)
   );
+  const [preIndex, setPreIndex] = useState();
+  const { isSheiftPressed } = useOnListenShiftKeyPress();
 
   const onCheckedChange = (index) => {
-    setIsChecked((preIsChecked) => {
-      const newIsChecked = [...preIsChecked]
-      newIsChecked[index] = !newIsChecked[index];
-      return newIsChecked;
-    });
+    if (!isSheiftPressed) {
+      setIsChecked((preIsChecked) => {
+        const newIsChecked = [...preIsChecked];
+        newIsChecked[index] = !newIsChecked[index];
+        return newIsChecked;
+      });
+      // For shift select
+      setPreIndex(index);
+      return;
+    }
+    setIsChecked((preIsChecked) =>
+      shiftChecked(preIndex, index, preIsChecked, options)
+    );
   };
 
   const onCheckedAll = () => {
     setIsChecked((preIsChecked) => {
       return preIsChecked.map((pre, index) => {
         // Skip disabled options
-        if (options[index].disabled) return pre
+        if (options[index].disabled) return pre;
 
-        return !isChecked.includes(true)
+        return !isChecked.includes(true);
       });
     });
   };
-  
 
   const isCheckedAll = useMemo(() => {
-    return isChecked.reduce((pre, cur) => {
+    return isChecked.reduce((pre, cur, index) => {
       // Skip disabled options
-      if (cur === undefined) return pre
+      if (options[index].disabled) return pre;
 
-      return pre && cur
-    })
-  }, [isChecked])
+      return pre && cur;
+    });
+  }, [isChecked, options]);
 
   return {
     isChecked,
     isCheckedAll,
     onCheckedChange,
-    onCheckedAll
+    onCheckedAll,
   };
 }
 
 function App() {
-  const { isChecked, isCheckedAll, onCheckedAll, onCheckedChange } = useMultipleChecked(EXAMPLE_OPTIONS)
+  const { isChecked, isCheckedAll, onCheckedAll, onCheckedChange } =
+    useMultipleChecked(EXAMPLE_OPTIONS);
   return (
     <div>
       <table>
         <thead>
           <tr className='col-header'>
             <td>
-              <input type='checkbox' id='check-all' checked={isCheckedAll} onChange={onCheckedAll} />
+              <input
+                type='checkbox'
+                id='check-all'
+                checked={isCheckedAll}
+                onChange={onCheckedAll}
+              />
             </td>
             <td>狀態</td>
           </tr>
