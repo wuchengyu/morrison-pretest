@@ -110,8 +110,12 @@ function App() {
   const { isChecked, isCheckedAll, onCheckedAll, onCheckedChange } =
     useMultipleChecked(EXAMPLE_OPTIONS);
   return (
-    <div>
-      <table>
+    <div className="app">
+      <h2>Morrison Express pretest</h2>
+      <div>
+        <a href="demo.html">Demo Vedio</a>
+      </div>
+      <table className="table">
         <thead>
           <tr className='col-header'>
             <td>

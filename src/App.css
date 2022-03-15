@@ -9,3 +9,11 @@
 .col-1 {
   background-color: #FFFFFF;
 }
+
+.app {
+  margin: 16px;
+}
+
+.table {
+  margin-top: 16px;
+}
