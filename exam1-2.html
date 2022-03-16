@@ -1,0 +1,54 @@
+<html>
+  <head>
+    <style>
+      div {
+        border: solid 0.5px black;
+        display: flex;
+      }
+
+      body {
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+        padding: 0px;
+        margin: 0px;
+        flex-direction: column;
+        display: flex;
+      }
+
+      #header {
+        height: 30px;
+      }
+
+      #wrapper {
+        flex: 1;
+        font-size: 0px;
+      }
+
+      #wrapper #side {
+        width: 60px;
+        height: 100%;
+      }
+
+      #content {
+        width: calc(100vw - 60px);
+        height: 100%;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        flex: 1;
+      }
+
+      #footer {
+        height: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header"></div>
+    <div id="wrapper">
+      <div id="side"></div>
+      <div id="content"></div>
+    </div>
+    <div id="footer"></div>
+  </body>
+</html>
